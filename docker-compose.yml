@@ -1,8 +1,7 @@
 services:
   myDB:
     image: postgres:15.15
-    container_name: my-database
-    restart: always
+    container_name: my-database    
     ports:
       - "5432:5432"
     environment:
