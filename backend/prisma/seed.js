@@ -16,23 +16,30 @@ const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
  
 async function main() {
-  await prisma.categoria.createMany({
-    data: [
-      {
-        descripcion: 'Bebidas',
-        estado: 'ACTIVO',
+  const categorias = [
+    "Botas",
+    "Botines",
+    "Calzados",
+    "Tenis",
+    "Varones",
+    "Mujeres",
+    "Niños"
+  ];
+
+  for (const descripcion of categorias) {
+
+    await prisma.categoria.upsert({
+      where: {
+        descripcion,
       },
-      {
-        descripcion: 'Comidas',
-        estado: 'ACTIVO',
+      update: {},
+      create: {
+        descripcion,
+        estado: "ACTIVO",
       },
-      {
-        descripcion: 'Postres',
-        estado: 'ACTIVO',
-      },
-    ],
-    skipDuplicates: true,
-  })
+    });
+
+  }
 }
  
 main()
