@@ -12,7 +12,7 @@ enum EstadoGeneral {
 }
 
 enum EstadoVenta {
-  ELABORADO
+  PENDIENTE
   PAGADO
   ANULADO
 }

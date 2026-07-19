@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import productosRoutes from "./routes/productos.routes.js";
 import categoriasRoutes from "./routes/categoria.routes.js";
+import clientesRoutes from "./routes/cliente.routes.js";
 
 const app = express();
 
@@ -10,6 +11,7 @@ app.use(express.json());
 
 app.use("/productos", productosRoutes);
 app.use("/categorias", categoriasRoutes);
+app.use("/clientes", clientesRoutes);
 
 
 app.get("/", (_req, res) => {
