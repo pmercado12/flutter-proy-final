@@ -19,19 +19,57 @@ export const getProductos = async (req: any, res: any) => {
  * Recibir los datos de un producto y una lista de unidades de medida y permitir crear lista de productos en base a eso, todos con la misma descripcion, precio
 */
 export const createProductos = async (req: any, res: any) => {    
-    try {
-        //Recibir los datos de un producto y una lista de unidades de medida y permitir crear lista de productos en base a eso, todos con la misma descripcion, precio        
-        req.body.unidadesMedida.forEach((unidadMedida: any) => {
-            const nuevoProducto = {            
-                descripcion: req.body.descripcion,
-                precio: req.body.precio,
-                unidadMedida: unidadMedida,
-                estado: EstadoGeneral.ACTIVO,
-            };
-            
-            if(nuevoProducto.descripcion === undefined || nuevoProducto.descripcion.trim() === "") {
-                return res.status(400).json({ error: "El campo 'descripcion' es obligatorio" });
-            }
+    try {        
+        if(!req.body.unidadMedida || req.body.unidadMedida.length === 0){
+            return res.status(400).json({ error: "Debe proporcionar al menos una unidad de medida" });
+        }
+        if(!req.body.categoria || req.body.categoria.length === 0){
+            return res.status(400).json({ error: "Debe proporcionar al menos una categoría" });
+        }
+        const unidadMedida = JSON.parse(req.body.unidadMedida); 
+        const categoria = JSON.parse(req.body.categoria); 
+
+        if(unidadMedida.length === 0){
+            return res.status(400).json({ error: "Debe proporcionar al menos una unidad de medida" });
+        }
+        if(categoria.length === 0){
+            return res.status(400).json({ error: "Debe proporcionar al menos una categoría" });
+        }
+        if(!req.body.descripcion || req.body.descripcion.trim() === ""){
+            return res.status(400).json({ error: "La descripción no puede estar vacía" });
+        }
+        if(!req.body.precio || req.body.precio <= 0){
+            return res.status(400).json({ error: "El precio debe ser mayor a cero" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+            error: "La imagen es obligatoria",
+            });
+        }
+
+        const imagen = req.file?.buffer;
+
+        unidadMedida.forEach(async (unidadMedida: any) => {            
+            const producto = await prisma.producto.create({
+                data:{                
+                    descripcion: req.body.descripcion,
+                    precio: req.body.precio,
+                    unidadMedida: unidadMedida,
+                    imagen: imagen,
+                    estado: EstadoGeneral.ACTIVO,
+                }
+            });
+
+            categoria.forEach(async (categoria: any) => {
+                const productosCategoria = await prisma.productosCategoria.create({
+                    data:{                
+                        idProducto: producto.id,
+                        idCategoria: categoria,                        
+                        estado: EstadoGeneral.ACTIVO
+                    }
+                });
+            });
         });                        
 /*
         const response = await prisma.producto.create({

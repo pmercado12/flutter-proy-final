@@ -90,11 +90,13 @@ model Producto {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_producto")
 
   descripcion  String @db.VarChar(200)
-  unidadMedida String @map("unidad_medida") @db.VarChar(50)
+  unidadMedida String @db.VarChar(50) @map("unidad_medida")
 
   precio Decimal @db.Decimal(12,2)
 
   estado EstadoGeneral
+
+  imagen Bytes?
 
   fechaCreacion DateTime @default(now()) @map("fecha_creacion")
 
@@ -248,9 +250,7 @@ model VentaProducto {
   producto Producto @relation(fields:[idProducto],references:[id])
 
   precio Decimal @db.Decimal(12,2)
-
-  imagen Bytes?
-
+  
   cantidad Decimal @db.Decimal(12,2)
 
   subtotal Decimal @db.Decimal(12,2)

@@ -52,6 +52,7 @@ CREATE TABLE "productos" (
     "unidad_medida" VARCHAR(50) NOT NULL,
     "precio" DECIMAL(12,2) NOT NULL,
     "estado" "EstadoGeneral" NOT NULL,
+    "imagen" BYTEA,
     "fecha_creacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "fecha_modificacion" TIMESTAMP(3),
 
@@ -125,7 +126,6 @@ CREATE TABLE "ventas_producto" (
     "id_venta" UUID NOT NULL,
     "id_producto" UUID NOT NULL,
     "precio" DECIMAL(12,2) NOT NULL,
-    "imagen" BYTEA,
     "cantidad" DECIMAL(12,2) NOT NULL,
     "subtotal" DECIMAL(12,2) NOT NULL,
     "estado" "EstadoGeneral" NOT NULL,
@@ -186,6 +186,9 @@ CREATE INDEX "idx_clientes_documento" ON "clientes"("documento");
 
 -- CreateIndex
 CREATE INDEX "idx_clientes_correo" ON "clientes"("correo_electronico");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "categorias_descripcion_key" ON "categorias"("descripcion");
 
 -- CreateIndex
 CREATE INDEX "idx_clasificadores_tipo" ON "clasificadores"("tipo_clasificador");
