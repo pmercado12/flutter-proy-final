@@ -1,0 +1,338 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum EstadoGeneral {
+  ACTIVO
+  INACTIVO
+}
+
+enum EstadoVenta {
+  ELABORADO
+  PAGADO
+  ANULADO
+}
+
+enum EstadoReserva {
+  ELABORADA
+  ENTREGADA
+  CANCELADA
+}
+
+enum EstadoPago {
+  ACTIVO
+  ANULADO
+}
+
+enum TipoClasificador {
+  METODO_PAGO
+  TIPO_MOVIMIENTO_INVENTARIO
+}
+
+/// ===============================
+/// USUARIOS
+/// ===============================
+
+model Usuario {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_usuario")
+  documento          String   @unique @db.VarChar(20)
+  nombres            String   @db.VarChar(100)
+  apellidos          String   @db.VarChar(100)
+  celular            String?  @db.VarChar(20)
+  correoElectronico  String?  @unique @map("correo_electronico") @db.VarChar(150)
+  direccion          String?  @db.VarChar(250)
+
+  estado EstadoGeneral  
+  fechaCreacion          DateTime @default(now()) @map("fecha_creacion")  
+  fechaModificacion      DateTime? @map("fecha_modificacion")    
+  
+  @@map("usuarios")
+}
+
+/// ===============================
+/// CLIENTES
+/// ===============================
+
+model Cliente {
+
+  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_cliente")
+
+  documento String @unique @db.VarChar(20)
+  nombres   String @db.VarChar(100)
+  apellidos String @db.VarChar(100)
+
+  celular           String? @db.VarChar(20)
+  correoElectronico String? @unique @map("correo_electronico") @db.VarChar(150)
+  direccion         String? @db.VarChar(250)
+
+  estado EstadoGeneral
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+  fechaModificacion DateTime? @map("fecha_modificacion")
+
+  ventas Venta[]
+  reservas Reserva[]
+
+  @@index([documento], map: "idx_clientes_documento")
+  @@index([correoElectronico], map: "idx_clientes_correo")
+  @@map("clientes")
+}
+
+/// ===============================
+/// PRODUCTOS
+/// ===============================
+
+model Producto {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_producto")
+
+  descripcion  String @db.VarChar(200)
+  unidadMedida String @map("unidad_medida") @db.VarChar(50)
+
+  precio Decimal @db.Decimal(12,2)
+
+  estado EstadoGeneral
+
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  fechaModificacion DateTime? @map("fecha_modificacion")
+
+  categorias ProductosCategoria[]
+  movimientos MovimientoInventario[]
+  ventasProducto VentaProducto[]
+  reservasProducto ReservaProducto[]
+
+  @@map("productos")
+}
+
+/// ===============================
+/// CATEGORIAS
+/// ===============================
+
+model Categoria {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_categoria")
+
+  descripcion String @unique @db.VarChar(100)
+
+  estado EstadoGeneral
+  
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  fechaModificacion DateTime? @map("fecha_modificacion")
+
+  productos ProductosCategoria[]
+
+  @@map("categorias")
+}
+
+/// ===============================
+/// CLASIFICADORES
+/// ===============================
+
+model Clasificador {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_clasificador")
+
+  tipoClasificador TipoClasificador @map("tipo_clasificador")
+
+  descripcion String @db.VarChar(100)
+
+  estado EstadoGeneral
+  
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  fechaModificacion DateTime? @map("fecha_modificacion")
+
+  movimientos MovimientoInventario[]
+  pagos Pago[]
+
+  @@index([tipoClasificador], map: "idx_clasificadores_tipo")
+  @@map("clasificadores")
+}
+
+/// ===============================
+/// PRODUCTOS CATEGORIA
+/// ===============================
+
+model ProductosCategoria {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_producto_categoria")
+
+  idProducto String @db.Uuid @map("id_producto")
+  producto Producto @relation(fields:[idProducto],references:[id])
+
+  idCategoria String @db.Uuid @map("id_categoria")
+  categoria Categoria @relation(fields:[idCategoria],references:[id])
+
+  estado EstadoGeneral
+  
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  fechaModificacion DateTime? @map("fecha_modificacion")
+
+  @@map("productos_categoria")
+}
+
+/// ===============================
+/// MOVIMIENTOS INVENTARIO
+/// ===============================
+
+model MovimientoInventario {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_movimiento")
+
+  idProducto String @db.Uuid @map("id_producto")
+  producto Producto @relation(fields:[idProducto],references:[id])
+
+  idTipoMovimiento String @db.Uuid @map("id_tipo_movimiento")
+  tipoMovimiento Clasificador @relation(fields:[idTipoMovimiento],references:[id])
+
+  cantidad Decimal @db.Decimal(12,2)
+
+  fechaMovimiento DateTime @map("fecha_movimiento")
+
+  observacion String?
+
+  estado EstadoGeneral
+  
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  fechaModificacion DateTime? @map("fecha_modificacion")
+
+  @@index([idProducto], map: "idx_movimientos_producto")
+  @@index([fechaMovimiento], map: "idx_movimientos_fecha")
+  @@map("movimientos_inventario")
+}
+
+/// ===============================
+/// VENTAS
+/// ===============================
+
+model Venta {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_venta")
+
+  idCliente String @db.Uuid @map("id_cliente")
+  cliente Cliente @relation(fields:[idCliente],references:[id])
+
+  fechaVenta DateTime @map("fecha_venta")
+
+  total Decimal @db.Decimal(12,2)
+
+  estado EstadoVenta
+
+  detalle VentaProducto[]
+  pagos Pago[]
+
+  @@index([idCliente], map: "idx_ventas_cliente")
+  @@index([fechaVenta], map: "idx_ventas_fecha")
+  @@map("ventas")
+}
+
+/// ===============================
+/// VENTAS PRODUCTO
+/// ===============================
+
+model VentaProducto {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_venta_producto")
+
+  idVenta String @db.Uuid @map("id_venta")
+  venta Venta @relation(fields:[idVenta],references:[id], onDelete: Cascade)
+
+  idProducto String @db.Uuid @map("id_producto")
+  producto Producto @relation(fields:[idProducto],references:[id])
+
+  precio Decimal @db.Decimal(12,2)
+
+  imagen Bytes?
+
+  cantidad Decimal @db.Decimal(12,2)
+
+  subtotal Decimal @db.Decimal(12,2)
+
+  estado EstadoGeneral
+  
+  @@index([idVenta], map: "idx_ventas_producto_venta")
+  @@index([idProducto], map: "idx_ventas_producto_producto")
+  @@map("ventas_producto")
+}
+
+/// ===============================
+/// RESERVAS
+/// ===============================
+
+model Reserva {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_reserva")
+
+  idCliente String @db.Uuid @map("id_cliente")
+  cliente Cliente @relation(fields:[idCliente],references:[id])
+
+  fechaReserva DateTime @map("fecha_reserva")
+
+  total Decimal @db.Decimal(12,2)
+
+  estado EstadoReserva
+
+  detalle ReservaProducto[]
+
+  @@index([idCliente], map: "idx_reservas_cliente")
+  @@index([fechaReserva], map: "idx_reservas_fecha")
+  @@map("reservas")
+}
+
+/// ===============================
+/// RESERVAS PRODUCTO
+/// ===============================
+
+model ReservaProducto {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_reserva_producto")
+
+  idReserva String @db.Uuid @map("id_reserva")
+  reserva Reserva @relation(fields:[idReserva],references:[id], onDelete: Cascade)
+
+  idProducto String @db.Uuid @map("id_producto")
+  producto Producto @relation(fields:[idProducto],references:[id])
+
+  precio Decimal @db.Decimal(12,2)
+
+  cantidad Decimal @db.Decimal(12,2)
+
+  subtotal Decimal @db.Decimal(12,2)
+
+  estado EstadoGeneral
+
+  @@index([idReserva], map: "idx_reservas_producto_reserva")
+  @@map("reservas_producto")
+}
+
+/// ===============================
+/// PAGOS
+/// ===============================
+
+model Pago {
+
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid @map("id_pago")
+
+  idVenta String @db.Uuid @map("id_venta")
+  venta Venta @relation(fields:[idVenta],references:[id])
+
+  idMetodoPago String @db.Uuid @map("id_metodo_pago")
+  metodoPago Clasificador @relation(fields:[idMetodoPago],references:[id])
+
+  monto Decimal @db.Decimal(12,2)
+
+  fechaPago DateTime @map("fecha_pago")
+
+  estado EstadoPago
+
+  @@index([idVenta], map: "idx_pagos_venta")
+  @@index([fechaPago], map: "idx_pagos_fecha")
+  @@map("pagos")
+}
