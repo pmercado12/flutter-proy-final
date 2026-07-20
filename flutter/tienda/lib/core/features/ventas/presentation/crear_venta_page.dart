@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tienda/core/features/clientes/presentation/crear_cliente_page.dart';
+import 'package:tienda/core/features/productos/data/producto_model.dart';
 import '../../clientes/providers/cliente_provider.dart';
+import '../../productos/providers/producto_provider.dart';
 import '../providers/venta_provider.dart';
 
 class CrearVentaPage extends ConsumerStatefulWidget {
@@ -11,19 +13,40 @@ class CrearVentaPage extends ConsumerStatefulWidget {
   ConsumerState<CrearVentaPage> createState() => _CrearVentaPageState();
 }
 
+class _LineaVenta {
+  final TextEditingController productoController;
+  final TextEditingController cantidadController;
+  Producto? productoSeleccionado;
+  double? precioSeleccionado;
+
+  _LineaVenta({
+    required this.productoController,
+    required this.cantidadController,
+  });
+}
+
 class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
   final documentoClienteController = TextEditingController();
-  final totalController = TextEditingController();
 
   bool cargando = false;
   bool buscandoCliente = false;
   String? clienteIdEncontrado;
   String? clienteNombreEncontrado;
+  final List<_LineaVenta> lineasVenta = [];
+
+  @override
+  void initState() {
+    super.initState();
+    agregarLinea();
+  }
 
   @override
   void dispose() {
     documentoClienteController.dispose();
-    totalController.dispose();
+    for (final linea in lineasVenta) {
+      linea.productoController.dispose();
+      linea.cantidadController.dispose();
+    }
     super.dispose();
   }
 
@@ -95,12 +118,55 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
     }
   }
 
+  void agregarLinea() {
+    setState(() {
+      lineasVenta.add(
+        _LineaVenta(
+          productoController: TextEditingController(),
+          cantidadController: TextEditingController(text: '1'),
+        ),
+      );
+    });
+  }
+
+  void removerLinea(int index) {
+    if (lineasVenta.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debe haber al menos un producto.')),
+      );
+      return;
+    }
+
+    setState(() {
+      final linea = lineasVenta[index];
+      linea.productoController.dispose();
+      linea.cantidadController.dispose();
+      lineasVenta.removeAt(index);
+    });
+  }
+
+  double get totalVenta {
+    return lineasVenta.fold(0.0, (sum, linea) {
+      final cantidad = double.tryParse(linea.cantidadController.text) ?? 0;
+      final precio = linea.precioSeleccionado ?? 0;
+      return sum + (cantidad * precio);
+    });
+  }
+
   Future<void> guardar() async {
     FocusScope.of(context).unfocus();
 
-    if (clienteIdEncontrado == null || totalController.text.trim().isEmpty) {
+    if (clienteIdEncontrado == null || lineasVenta.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Complete los campos obligatorios.')),
+      );
+      return;
+    }
+
+    final productosValidos = lineasVenta.where((linea) => linea.productoSeleccionado != null).toList();
+    if (productosValidos.length != lineasVenta.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cada fila debe tener un producto seleccionado.')),
       );
       return;
     }
@@ -108,19 +174,27 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
     setState(() => cargando = true);
 
     try {
-      await ref.read(ventaRepositoryProvider).api.dio.post('/ventas', data: {
-        'idCliente': clienteIdEncontrado,
-        'fechaVenta': DateTime.now().toIso8601String(),
-        'total': double.parse(totalController.text.trim()),
-        'estado': 'PENDIENTE',
+      await ref.read(ventaRepositoryProvider).crearVenta({
+        'idCliente': clienteIdEncontrado,        
+        'total': totalVenta,        
+        'productos': productosValidos.map((linea) => {
+          'idProducto': linea.productoSeleccionado!.id,
+          'cantidad': double.tryParse(linea.cantidadController.text) ?? 1,
+          'precio': linea.precioSeleccionado,
+        }).toList(),
       });
 
       if (!mounted) return;
 
       documentoClienteController.clear();
-      totalController.clear();
       clienteIdEncontrado = null;
       clienteNombreEncontrado = null;
+      for (final linea in lineasVenta) {
+        linea.productoController.dispose();
+        linea.cantidadController.dispose();
+      }
+      lineasVenta.clear();
+      agregarLinea();
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -132,6 +206,7 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
 
       Navigator.pop(context);
     } catch (e) {
+      print(e);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
@@ -171,6 +246,92 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
             borderSide: const BorderSide(color: Colors.indigo, width: 2),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildLineaVenta(int index, _LineaVenta linea) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<Producto>(
+                  value: linea.productoSeleccionado,
+                  decoration: InputDecoration(
+                    labelText: 'Producto',
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  items: ref.watch(productosProvider).maybeWhen(
+                    data: (productos) => productos.map((producto) {
+                      final etiqueta = producto.unidadMedida.isNotEmpty
+                          ? '${producto.descripcion} - Talla: ${producto.unidadMedida}'
+                          : producto.descripcion;
+                      return DropdownMenuItem(
+                        value: producto,
+                        child: Text(etiqueta),
+                      );
+                    }).toList(),
+                    orElse: () => const [],
+                  ),
+                  onChanged: (producto) {
+                    setState(() {
+                      linea.productoSeleccionado = producto;
+                      linea.precioSeleccionado = producto?.precio ?? 0;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () => removerLinea(index),
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: linea.cantidadController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Cantidad',
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Subtotal: Bs ${(double.tryParse(linea.cantidadController.text) ?? 0) * (linea.precioSeleccionado ?? 0)}',
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -223,11 +384,36 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
                             style: const TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
-                      campo(
-                        controller: totalController,
-                        label: 'Total',
-                        icon: Icons.attach_money,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          const Icon(Icons.shopping_bag_outlined, color: Colors.indigo),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Productos',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ...lineasVenta.asMap().entries.map((entry) => buildLineaVenta(entry.key, entry.value)).toList(),
+                      TextButton.icon(
+                        onPressed: agregarLinea,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Agregar producto'),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green.shade200),
+                        ),
+                        child: Text(
+                          'Total: Bs ${totalVenta.toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       SizedBox(

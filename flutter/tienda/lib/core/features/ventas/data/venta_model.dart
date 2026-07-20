@@ -24,7 +24,7 @@ class Venta {
       id: json['id']?.toString() ?? '',
       idCliente: json['idCliente']?.toString() ?? '',
       fechaVenta: DateTime.parse(json['fechaVenta']?.toString() ?? ''),
-      total: (json['total'] is num) ? (json['total'] as num).toDouble() : 0.0,
+      total: json['total'] == null ? 0.0 : double.tryParse(json['total'].toString()) ?? 0.0,
       estado: json['estado']?.toString() ?? 'PENDIENTE',
       clienteNombre: [nombres, apellidos].where((e) => e.isNotEmpty).join(' ').trim().isNotEmpty
           ? [nombres, apellidos].where((e) => e.isNotEmpty).join(' ').trim()

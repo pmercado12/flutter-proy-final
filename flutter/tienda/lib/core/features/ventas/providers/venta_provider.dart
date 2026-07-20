@@ -14,3 +14,10 @@ final cantidadVentasProvider = FutureProvider<int>((ref) async {
 final ventasProvider = FutureProvider<List<Venta>>((ref) async {
   return ref.read(ventaRepositoryProvider).listarVentas();
 });
+
+final crearVentaProvider = FutureProvider.family<void, Map<String, dynamic>>((
+  ref,
+  data,
+) async {
+  await ref.read(ventaRepositoryProvider).crearVenta(data);
+});

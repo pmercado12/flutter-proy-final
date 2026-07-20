@@ -48,9 +48,7 @@ class ListarVentasPage extends ConsumerWidget {
                       children: [
                         Text('Fecha: ${venta.fechaVenta.toLocal().toString().split(' ').first}'),
                         const SizedBox(height: 4),
-                        Text('Estado: ${venta.estado}'),
-                        const SizedBox(height: 4),
-                        Text('Total: Bs ${venta.total.toStringAsFixed(2)}'),
+                        Text('Total: Bs. ${venta.total.toStringAsFixed(2)}'),
                       ],
                     ),
                   ),

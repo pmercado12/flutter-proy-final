@@ -22,4 +22,10 @@ class VentaRepository {
 
     return [];
   }
+
+  Future<Venta> crearVenta(Map<String, dynamic> data) async {    
+    final response = await api.dio.post("/ventas", data: data);
+
+    return Venta.fromJson(response.data);
+  }
 }
