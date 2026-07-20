@@ -1,14 +1,30 @@
 services:
-  myDB:
+  postgres:
     image: postgres:15.15
-    container_name: my-database    
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB}
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_DB: appdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5  
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  backend:
+    #build: ./backend
+    image: pmercado12/flutter-proy-final-backend:1.0.0    
+    #restart: always
+    environment:
+      DATABASE_URL: postgresql://appuser:apppass@postgres:5432/appdb
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy      
 volumes:
   postgres_data:

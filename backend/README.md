@@ -1,5 +1,14 @@
-npx prisma migrate dev --name init
+## 🚀 Instalación local
 
-npx prisma db seed
+#bash
+git clone https://github.com/pmercado12/flutter-proy-final
 
-npx prisma generate
+cd flutter-proy-final
+
+#Terminal 1
+docker compose up --build
+
+#Terminal 2
+docker compose exec backend npx prisma migrate deploy
+
+docker compose exec backend npx prisma db seed
