@@ -6,6 +6,7 @@ import 'package:tienda/core/features/clientes/presentation/listar_clientes_page.
 import 'package:tienda/core/features/dashboard/presentation/dashboard_page.dart';
 import 'package:tienda/core/features/productos/presentation/crear_producto_page.dart';
 import 'package:tienda/core/features/productos/presentation/listar_productos_page.dart';
+import 'package:tienda/core/features/ventas/presentation/listar_ventas_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,9 +22,9 @@ class _HomePageState extends State<HomePage> {
     DashboardPage(),
     ListarClientesPage(),
     ListarProductosPage(),
+    ListarVentasPage(),
     //InicioPage(),
     //ClientesPage(),
-    //VentasPage(),
     //ConfiguracionPage(),
   ];
 
