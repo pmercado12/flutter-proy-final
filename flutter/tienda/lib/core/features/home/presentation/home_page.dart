@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tienda/core/features/categorias/presentation/categoria_page.dart';
 import 'package:tienda/core/features/clientes/presentation/crear_cliente_page.dart';
+import 'package:tienda/core/features/clientes/presentation/listar_clientes_page.dart';
 import 'package:tienda/core/features/dashboard/presentation/dashboard_page.dart';
 import 'package:tienda/core/features/productos/presentation/crear_producto_page.dart';
 import 'package:tienda/core/features/productos/presentation/listar_productos_page.dart';
@@ -18,7 +19,7 @@ class _HomePageState extends State<HomePage> {
 
   final paginas = const [
     DashboardPage(),
-    CrearClientePage(),
+    ListarClientesPage(),
     ListarProductosPage(),
     //InicioPage(),
     //ClientesPage(),

@@ -12,7 +12,7 @@ class ListarProductosPage extends ConsumerWidget {
     final productos = ref.watch(productosProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Productos")),
+      appBar: AppBar(title: const Text("Productos"), centerTitle: true),
 
       body: productos.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -31,10 +31,6 @@ class ListarProductosPage extends ConsumerWidget {
 
             itemBuilder: (context, index) {
               final producto = lista[index];
-
-              print(
-                "Imagen ${producto.descripcion}: ${producto.imagen?.length}",
-              );
 
               return Card(
                 elevation: 3,
