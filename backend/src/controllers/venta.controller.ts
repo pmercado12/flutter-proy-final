@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma.js';
 import { EstadoGeneral,EstadoVenta } from '@prisma/client';
 
 export const createVenta = async (req: any, res: any) => {
+	console.log(req.body);
     try {
 
         const {
