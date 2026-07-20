@@ -28,4 +28,9 @@ class VentaRepository {
 
     return Venta.fromJson(response.data);
   }
+
+  Future<VentaDetalleVenta> obtenerDetalleVenta(String id) async {
+    final response = await api.dio.get('/ventas/detalle/$id');
+    return VentaDetalleVenta.fromJson(response.data);
+  }
 }

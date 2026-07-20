@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/venta_provider.dart';
 import 'crear_venta_page.dart';
+import 'ver_detalle_venta_page.dart';
 
 class ListarVentasPage extends ConsumerWidget {
   const ListarVentasPage({super.key});
@@ -21,34 +22,74 @@ class ListarVentasPage extends ConsumerWidget {
             return const Center(child: Text('No existen ventas.'));
           }
 
+          final ventasOrdenadas = [...lista]
+            ..sort((a, b) => b.fechaVenta.compareTo(a.fechaVenta));
+
           return ListView.builder(
             padding: const EdgeInsets.all(15),
-            itemCount: lista.length,
+            itemCount: ventasOrdenadas.length,
             itemBuilder: (_, index) {
-              final venta = lista[index];
+              final venta = ventasOrdenadas[index];
               return Card(
                 elevation: 3,
                 margin: const EdgeInsets.only(bottom: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.green.shade100,
-                    child: const Icon(Icons.shopping_cart, color: Colors.green),
-                  ),
-                  title: Text(
-                    venta.clienteNombre ?? 'Cliente sin nombre',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Column(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(15),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => VerDetalleVentaPage(ventaId: venta.id)),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Fecha: ${venta.fechaVenta.toLocal().toString().split(' ').first}'),
-                        const SizedBox(height: 4),
-                        Text('Total: Bs. ${venta.total.toStringAsFixed(2)}'),
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.green.shade100,
+                          child: const Icon(Icons.shopping_cart, color: Colors.green),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                venta.clienteNombre ?? 'Cliente sin nombre',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Fecha: ${venta.fechaVenta.toLocal().toString().split(' ').first}',
+                                style: TextStyle(color: Colors.grey.shade700),
+                              ),                              
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'Total',
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Bs. ${venta.total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.indigo,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),

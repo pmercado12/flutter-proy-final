@@ -21,3 +21,7 @@ final crearVentaProvider = FutureProvider.family<void, Map<String, dynamic>>((
 ) async {
   await ref.read(ventaRepositoryProvider).crearVenta(data);
 });
+
+final detalleVentaProvider = FutureProvider.family<VentaDetalleVenta, String>((ref, id) async {
+  return ref.read(ventaRepositoryProvider).obtenerDetalleVenta(id);
+});

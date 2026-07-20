@@ -1,8 +1,8 @@
 import { prisma } from '../lib/prisma.js';
-import { EstadoGeneral,EstadoVenta } from '@prisma/client';
+import { EstadoGeneral, EstadoVenta } from '@prisma/client';
 
 export const createVenta = async (req: any, res: any) => {
-	console.log(req.body);
+    console.log(req.body);
     try {
 
         const {
@@ -60,7 +60,14 @@ export const getVentaById = async (req: any, res: any) => {
                 id: req.params.id
             },
             include: {
-                cliente: true,
+                cliente: {
+                    select: {
+                        id: true,
+                        documento: true,
+                        nombres: true,
+                        apellidos: true
+                    }
+                },
                 detalle: {
                     include: {
                         producto: {
@@ -114,9 +121,9 @@ export const getVentas = async (req: any, res: any) => {
 
 export const getNroVentas = async (req: any, res: any) => {
     try {
-        const totalActivos = await prisma.venta.count({        
+        const totalActivos = await prisma.venta.count({
         });
-        res.json({nro:totalActivos});
+        res.json({ nro: totalActivos });
     } catch (error) {
         console.error("Error al obtener nro de ventas:", error);
         res.status(500).json({ error: "No se pudieron obtener las ventas" });
