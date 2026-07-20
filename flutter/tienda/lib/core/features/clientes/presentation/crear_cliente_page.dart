@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/cliente_provider.dart';
@@ -10,7 +11,54 @@ class CrearClientePage extends ConsumerStatefulWidget {
   ConsumerState<CrearClientePage> createState() => _CrearClientePageState();
 }
 
+class ClienteInputValidators {
+  static String? validarDocumento(String? value) {
+    final texto = value?.trim() ?? '';
+    if (texto.isEmpty) {
+      return 'El documento es obligatorio.';
+    }
+    if (!RegExp(r'^[0-9A-Z]+$').hasMatch(texto)) {
+      return 'Solo se permiten números y letras A-Z.';
+    }
+    return null;
+  }
+
+  static String? validarNombre(String? value) {
+    final texto = value?.trim() ?? '';
+    if (texto.isEmpty) {
+      return 'Este campo es obligatorio.';
+    }
+    if (!RegExp(r'^[A-Z ]+$').hasMatch(texto.toUpperCase())) {
+      return 'Solo se permiten letras A-Z y espacios.';
+    }
+    return null;
+  }
+
+  static String? validarEmail(String? value) {
+    final texto = value?.trim() ?? '';
+    if (texto.isEmpty) {
+      return 'El correo es obligatorio.';
+    }
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(texto)) {
+      return 'Ingrese un correo válido.';
+    }
+    return null;
+  }
+
+  static String? validarCodigoPostal(String? value) {
+    final texto = value?.trim() ?? '';
+    if (texto.isEmpty) {
+      return null;
+    }
+    if (!RegExp(r'^\d{4,15}$').hasMatch(texto)) {
+      return 'El código postal debe contener solo números.';
+    }
+    return null;
+  }
+}
+
 class _CrearClientePageState extends ConsumerState<CrearClientePage> {
+  final _formKey = GlobalKey<FormState>();
   final documento = TextEditingController();
   final nombres = TextEditingController();
   final apellidos = TextEditingController();
@@ -32,6 +80,10 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
   Future<void> guardar() async {
     FocusScope.of(context).unfocus();
 
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     if (documento.text.trim().isEmpty ||
         nombres.text.trim().isEmpty ||
         apellidos.text.trim().isEmpty) {
@@ -47,11 +99,11 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
 
     try {
       await ref.read(clienteRepositoryProvider).crearCliente({
-        "documento": documento.text.trim(),
-        "nombres": nombres.text.trim(),
-        "apellidos": apellidos.text.trim(),
+        "documento": documento.text.trim().toUpperCase(),
+        "nombres": nombres.text.trim().toUpperCase(),
+        "apellidos": apellidos.text.trim().toUpperCase(),
         "celular": celular.text.trim(),
-        "correoElectronico": correo.text.trim(),
+        "correoElectronico": correo.text.trim().toLowerCase(),
       });
 
       if (!mounted) return;
@@ -71,6 +123,9 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
           duration: Duration(seconds: 2),
         ),
       );
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
 
@@ -91,14 +146,26 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
     required String label,
     required IconData icon,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? validator,
+    String? helperText,
+    int? maxLength,
+    TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        maxLength: maxLength,
+        textCapitalization: textCapitalization,
+        validator: validator,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
         decoration: InputDecoration(
           labelText: label,
+          helperText: helperText,
+          counterText: '',
           prefixIcon: Icon(icon),
           filled: true,
           fillColor: Colors.grey.shade100,
@@ -110,6 +177,14 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: Colors.indigo, width: 2),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.redAccent),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 2),
           ),
         ),
       ),
@@ -127,6 +202,8 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
           title: const Text("Registro de Cliente"),
           centerTitle: true,
           elevation: 0,
+          backgroundColor: Colors.indigo,
+          foregroundColor: Colors.white,
         ),
 
         body: SafeArea(
@@ -140,75 +217,112 @@ class _CrearClientePageState extends ConsumerState<CrearClientePage> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      campo(
-                        controller: documento,
-                        label: "Documento",
-                        icon: Icons.badge_outlined,
-                        keyboardType: TextInputType.number,
-                      ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        campo(
+                          controller: documento,
+                          label: "Documento",
+                          icon: Icons.badge_outlined,
+                          keyboardType: TextInputType.text,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Z]')),
+                          ],
+                          validator: ClienteInputValidators.validarDocumento,
+                          maxLength: 20,
+                          textCapitalization: TextCapitalization.characters,
+                        ),
 
-                      campo(
-                        controller: nombres,
-                        label: "Nombres",
-                        icon: Icons.person_outline,
-                      ),
+                        campo(
+                          controller: nombres,
+                          label: "Nombres",
+                          icon: Icons.person_outline,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[A-Z ]')),
+                          ],
+                          validator: ClienteInputValidators.validarNombre,
+                          maxLength: 100,
+                          textCapitalization: TextCapitalization.characters,
+                        ),
 
-                      campo(
-                        controller: apellidos,
-                        label: "Apellidos",
-                        icon: Icons.people_outline,
-                      ),
+                        campo(
+                          controller: apellidos,
+                          label: "Apellidos",
+                          icon: Icons.people_outline,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[A-Z ]')),
+                          ],
+                          validator: ClienteInputValidators.validarNombre,
+                          maxLength: 100,
+                          textCapitalization: TextCapitalization.characters,
+                        ),
 
-                      campo(
-                        controller: celular,
-                        label: "Celular",
-                        icon: Icons.phone_outlined,
-                        keyboardType: TextInputType.phone,
-                      ),
+                        campo(
+                          controller: celular,
+                          label: "Celular",
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          validator: (value) {
+                            final celularError = value?.trim().isEmpty ?? true
+                                ? 'El celular es obligatorio.'
+                                : null;
+                            if (celularError != null) {
+                              return celularError;
+                            }
+                            return ClienteInputValidators.validarCodigoPostal(value);
+                          },
+                          helperText: "Ejemplo: 0591 (Bolivia)",
+                          maxLength: 15,
+                        ),
 
-                      campo(
-                        controller: correo,
-                        label: "Correo electrónico",
-                        icon: Icons.email_outlined,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
+                        campo(
+                          controller: correo,
+                          label: "Correo electrónico",
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: ClienteInputValidators.validarEmail,
+                          maxLength: 150,
+                        ),
 
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                      SizedBox(
-                        width: double.infinity,
-                        height: 55,
-                        child: ElevatedButton.icon(
-                          onPressed: cargando ? null : guardar,
-                          icon: cargando
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.save),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton.icon(
+                            onPressed: cargando ? null : guardar,
+                            icon: cargando
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.save),
 
-                          label: Text(
-                            cargando ? "Guardando..." : "Guardar Cliente",
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                            label: Text(
+                              cargando ? "Guardando..." : "Guardar Cliente",
+                              style: const TextStyle(fontSize: 16),
+                            ),
 
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.indigo,
-                            foregroundColor: Colors.white,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.indigo,
+                              foregroundColor: Colors.white,
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

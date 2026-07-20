@@ -210,7 +210,8 @@ class _CrearProductoPageState extends ConsumerState<CrearProductoPage> {
 
         appBar: AppBar(
           title: const Text("Registro de Producto"),
-          centerTitle: true,
+          centerTitle: true,backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
         ),
 
         body: SafeArea(

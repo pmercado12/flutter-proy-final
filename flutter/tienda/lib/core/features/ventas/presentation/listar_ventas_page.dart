@@ -13,7 +13,8 @@ class ListarVentasPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xffF5F7FA),
-      appBar: AppBar(title: const Text('Ventas'), centerTitle: true),
+      appBar: AppBar(title: const Text('Ventas'), centerTitle: true,backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,),
       body: ventas.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text(error.toString())),

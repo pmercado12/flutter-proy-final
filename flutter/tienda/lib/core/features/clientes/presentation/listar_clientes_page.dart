@@ -14,7 +14,8 @@ class ListarClientesPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xffF5F7FA),
 
-      appBar: AppBar(title: const Text("Clientes"), centerTitle: true),
+      appBar: AppBar(title: const Text("Clientes"), centerTitle: true,backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,),
 
       body: clientes.when(
         loading: () => const Center(child: CircularProgressIndicator()),

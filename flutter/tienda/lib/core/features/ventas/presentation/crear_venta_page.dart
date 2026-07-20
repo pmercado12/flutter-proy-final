@@ -224,12 +224,18 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
     required IconData icon,
     TextInputType? keyboardType,
     Widget? suffix,
+    VoidCallback? onSubmitted,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: controller,
         keyboardType: keyboardType,
+        onSubmitted: (_) {
+          if (onSubmitted != null) {
+            onSubmitted();
+          }
+        },
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
@@ -345,7 +351,8 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
         appBar: AppBar(
           title: const Text('Registrar venta'),
           centerTitle: true,
-          elevation: 0,
+          elevation: 0,backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
         ),
         body: SafeArea(
           child: ListView(
@@ -368,6 +375,7 @@ class _CrearVentaPageState extends ConsumerState<CrearVentaPage> {
                           icon: const Icon(Icons.search),
                           onPressed: cargando ? null : buscarCliente,
                         ),
+                        onSubmitted: cargando ? null : buscarCliente,
                       ),
                       if (clienteNombreEncontrado != null)
                         Container(
