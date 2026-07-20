@@ -3,12 +3,13 @@ import { prisma } from '../lib/prisma.js'
 
 export const getProductos = async (req: any, res: any) => {
     try {
-        const tasks = await prisma.producto.findMany({
+        const productos = await prisma.producto.findMany({
             orderBy: {
                 descripcion: "asc"
             }
         });
-        res.json(tasks);
+        console.log(productos);
+        res.json(productos);
     } catch (error) {
         console.error("Error al obtener productos:", error);
         res.status(500).json({ error: "No se pudieron obtener los productos" });
@@ -20,6 +21,9 @@ export const getProductos = async (req: any, res: any) => {
 */
 export const createProductos = async (req: any, res: any) => {    
     try {        
+    console.log(req.body);
+    console.log(req.file);
+
         if(!req.body.unidadMedida || req.body.unidadMedida.length === 0){
             return res.status(400).json({ error: "Debe proporcionar al menos una unidad de medida" });
         }
@@ -30,19 +34,24 @@ export const createProductos = async (req: any, res: any) => {
         const categoria = JSON.parse(req.body.categoria); 
 
         if(unidadMedida.length === 0){
+            console.log("Debe proporcionar al menos una unidad de medida");
             return res.status(400).json({ error: "Debe proporcionar al menos una unidad de medida" });
         }
         if(categoria.length === 0){
+            console.log("Debe proporcionar al menos una categoría");
             return res.status(400).json({ error: "Debe proporcionar al menos una categoría" });
         }
         if(!req.body.descripcion || req.body.descripcion.trim() === ""){
+        console.log("La descripción no puede estar vacía");
             return res.status(400).json({ error: "La descripción no puede estar vacía" });
         }
         if(!req.body.precio || req.body.precio <= 0){
+            console.log("El precio debe ser mayor a cero");
             return res.status(400).json({ error: "El precio debe ser mayor a cero" });
         }
 
         if (!req.file) {
+            console.log("La imagen es obligatoria");
             return res.status(400).json({
             error: "La imagen es obligatoria",
             });
@@ -50,12 +59,12 @@ export const createProductos = async (req: any, res: any) => {
 
         const imagen = req.file?.buffer;
 
-        unidadMedida.forEach(async (unidadMedida: any) => {            
+        for (const unidad of unidadMedida){            
             const producto = await prisma.producto.create({
                 data:{                
                     descripcion: req.body.descripcion,
                     precio: req.body.precio,
-                    unidadMedida: unidadMedida,
+                    unidadMedida: unidadMedida+"",
                     imagen: imagen,
                     estado: EstadoGeneral.ACTIVO,
                 }
@@ -70,7 +79,7 @@ export const createProductos = async (req: any, res: any) => {
                     }
                 });
             });
-        });                        
+        }                        
 /*
         const response = await prisma.producto.create({
             data: nuevoProducto,

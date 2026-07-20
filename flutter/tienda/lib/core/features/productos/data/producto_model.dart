@@ -3,7 +3,7 @@ class Producto {
   final String descripcion;
   final String unidadMedida;
   final double precio;
-  final String? imagen;
+  final List<int>? imagen;
   final DateTime fechaCreacion;
 
   Producto({
@@ -16,12 +16,21 @@ class Producto {
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) {
+    List<int>? bytes;
+    final imagenJson = json["imagen"];
+
+    if (imagenJson != null) {
+      if (imagenJson is Map) {
+        bytes = imagenJson.values.map((e) => int.parse(e.toString())).toList();
+      }
+    }
+
     return Producto(
       id: json["id"],
       descripcion: json["descripcion"],
       unidadMedida: json["unidadMedida"],
       precio: double.parse(json["precio"].toString()),
-      imagen: json["imagen"],
+      imagen: bytes,
       fechaCreacion: DateTime.parse(json["fechaCreacion"]),
     );
   }

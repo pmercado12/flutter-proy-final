@@ -11,7 +11,8 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.6.1
   dio: ^5.7.0  
-
+  image_picker: ^1.1.2
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
