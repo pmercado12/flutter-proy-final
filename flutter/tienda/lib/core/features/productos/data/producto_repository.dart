@@ -43,4 +43,10 @@ class ProductoRepository {
   Future<void> eliminarProducto(String id) async {
     await api.dio.delete("/productos/$id");
   }
+
+  Future<int> contarProductos() async {
+    final response = await api.dio.get('/productos/nro');
+
+    return response.data['nro'];
+  }
 }

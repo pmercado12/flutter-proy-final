@@ -3,6 +3,7 @@ import cors from "cors";
 import productosRoutes from "./routes/productos.routes.js";
 import categoriasRoutes from "./routes/categoria.routes.js";
 import clientesRoutes from "./routes/cliente.routes.js";
+import ventasRoutes from "./routes/ventas.routes.js";
 
 const app = express();
 
@@ -12,7 +13,7 @@ app.use(express.json());
 app.use("/productos", productosRoutes);
 app.use("/categorias", categoriasRoutes);
 app.use("/clientes", clientesRoutes);
-
+app.use("/ventas", ventasRoutes);
 
 app.get("/", (_req, res) => {
   res.send("backend is working");

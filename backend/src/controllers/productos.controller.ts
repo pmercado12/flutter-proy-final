@@ -8,13 +8,28 @@ export const getProductos = async (req: any, res: any) => {
                 descripcion: "asc"
             }
         });
-        console.log(productos);
         res.json(productos);
     } catch (error) {
         console.error("Error al obtener productos:", error);
         res.status(500).json({ error: "No se pudieron obtener los productos" });
     }
 };
+
+export const getNroProductos = async (req: any, res: any) => {
+    try {
+        const totalActivos = await prisma.producto.count({
+        where: {
+            estado: 'ACTIVO',
+        },
+        });
+        res.json({nro:totalActivos});
+    } catch (error) {
+        console.error("Error al obtener nro de productos:", error);
+        res.status(500).json({ error: "No se pudieron obtener los productos" });
+    }
+};
+
+
 
 /** 
  * Recibir los datos de un producto y una lista de unidades de medida y permitir crear lista de productos en base a eso, todos con la misma descripcion, precio

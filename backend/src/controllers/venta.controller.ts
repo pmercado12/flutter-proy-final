@@ -110,3 +110,14 @@ export const getVentas = async (req: any, res: any) => {
         });
     }
 };
+
+export const getNroVentas = async (req: any, res: any) => {
+    try {
+        const totalActivos = await prisma.venta.count({        
+        });
+        res.json({nro:totalActivos});
+    } catch (error) {
+        console.error("Error al obtener nro de ventas:", error);
+        res.status(500).json({ error: "No se pudieron obtener las ventas" });
+    }
+};

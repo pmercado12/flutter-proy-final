@@ -18,4 +18,10 @@ class ClienteRepository {
 
     return (response.data as List).map((e) => Cliente.fromJson(e)).toList();
   }
+
+  Future<int> contarClientes() async {
+    final response = await api.dio.get('/clientes/nro');
+
+    return response.data['nro'];
+  }
 }

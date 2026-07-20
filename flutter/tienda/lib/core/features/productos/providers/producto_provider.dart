@@ -28,3 +28,7 @@ final crearProductoProvider = FutureProvider.family<void, CrearProductoData>((
 final productosProvider = FutureProvider<List<Producto>>((ref) async {
   return ref.read(productoRepositoryProvider).obtenerProductos();
 });
+
+final cantidadProductosProvider = FutureProvider<int>((ref) async {
+  return ref.read(productoRepositoryProvider).contarProductos();
+});

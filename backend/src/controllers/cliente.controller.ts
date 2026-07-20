@@ -31,6 +31,20 @@ export const getClientes = async (req: any, res: any) => {
     }
 };
 
+export const getNroClientes = async (req: any, res: any) => {
+    try {
+        const totalActivos = await prisma.cliente.count({
+        where: {
+            estado: 'ACTIVO',
+        },
+        });
+        res.json({nro:totalActivos});
+    } catch (error) {
+        console.error("Error al obtener nro de clientes:", error);
+        res.status(500).json({ error: "No se pudieron obtener los clientes" });
+    }
+};
+
 
 
 export const createCliente = async (req: any, res: any) => {

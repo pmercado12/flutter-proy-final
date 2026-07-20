@@ -3,12 +3,14 @@ import {
     getClientes,
     createCliente,
     deleteCliente,
-    updateCliente
+    updateCliente,
+    getNroClientes
 } from "../controllers/cliente.controller.js";
 
 const router = express.Router();
 
 router.get("/", getClientes);
+router.get("/nro", getNroClientes);
 router.post("/", createCliente);
 router.delete("/:id", deleteCliente);
 router.put("/:id", updateCliente);

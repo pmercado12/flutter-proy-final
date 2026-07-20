@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:tienda/core/features/categorias/presentation/categoria_page.dart';
-import 'package:tienda/core/features/clientes/presentation/crear_cliente_page.dart';
-import 'package:tienda/core/features/productos/presentation/crear_producto_page.dart';
-import 'package:tienda/core/features/productos/presentation/listar_productos_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DashboardPage extends StatelessWidget {
+import 'package:tienda/core/features/clientes/providers/cliente_provider.dart';
+import 'package:tienda/core/features/productos/providers/producto_provider.dart';
+import 'package:tienda/core/features/categorias/providers/categoria_provider.dart';
+import 'package:tienda/core/features/ventas/providers/venta_provider.dart';
+
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final clientes = ref.watch(cantidadClientesProvider);
+
+    final productos = ref.watch(cantidadProductosProvider);
+
+    final categorias = ref.watch(categoriasProvider);
+
+    final ventas = ref.watch(cantidadVentasProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xffF5F7FA),
 
@@ -21,10 +31,12 @@ class DashboardPage extends StatelessWidget {
           children: [
             Container(
               width: double.infinity,
+
               padding: const EdgeInsets.all(22),
 
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(22),
+
                 gradient: const LinearGradient(
                   colors: [Colors.indigo, Color(0xff5C6BC0)],
                 ),
@@ -49,13 +61,6 @@ class DashboardPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
-                  SizedBox(height: 10),
-
-                  Text(
-                    "Administra productos, clientes y ventas desde un solo lugar.",
-                    style: TextStyle(color: Colors.white70),
-                  ),
                 ],
               ),
             ),
@@ -74,8 +79,11 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: _infoCard(
                     titulo: "Productos",
-                    valor: "10",
+
+                    valor: productos.value?.toString() ?? "0",
+
                     icono: Icons.inventory_2,
+
                     color: Colors.blue,
                   ),
                 ),
@@ -85,8 +93,11 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: _infoCard(
                     titulo: "Clientes",
-                    valor: "3",
+
+                    valor: clientes.value?.toString() ?? "0",
+
                     icono: Icons.people,
+
                     color: Colors.green,
                   ),
                 ),
@@ -100,8 +111,11 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: _infoCard(
                     titulo: "Categorías",
-                    valor: "7",
+
+                    valor: categorias.value?.length.toString() ?? "0",
+
                     icono: Icons.category,
+
                     color: Colors.orange,
                   ),
                 ),
@@ -111,8 +125,11 @@ class DashboardPage extends StatelessWidget {
                 Expanded(
                   child: _infoCard(
                     titulo: "Ventas",
-                    valor: "0",
+
+                    valor: ventas.value?.toString() ?? "0",
+
                     icono: Icons.shopping_cart,
+
                     color: Colors.redAccent,
                   ),
                 ),
@@ -124,58 +141,13 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _menu(
-    BuildContext context, {
-    required String titulo,
-    required IconData icono,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(.15),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: color.withOpacity(.15),
-
-              child: Icon(icono, color: color, size: 30),
-            ),
-
-            const SizedBox(height: 15),
-
-            Text(
-              titulo,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _infoCard({
     required String titulo,
+
     required String valor,
+
     required IconData icono,
+
     required Color color,
   }) {
     return Container(
@@ -183,11 +155,8 @@ class DashboardPage extends StatelessWidget {
 
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
 
-        boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(.15), blurRadius: 10),
-        ],
+        borderRadius: BorderRadius.circular(18),
       ),
 
       child: Column(
@@ -198,10 +167,11 @@ class DashboardPage extends StatelessWidget {
 
           Text(
             valor,
+
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
 
-          Text(titulo, style: TextStyle(color: Colors.grey.shade600)),
+          Text(titulo),
         ],
       ),
     );

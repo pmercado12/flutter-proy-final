@@ -18,3 +18,7 @@ final crearClienteProvider = FutureProvider.family<void, Map<String, dynamic>>((
 final clientesProvider = FutureProvider<List<Cliente>>((ref) async {
   return ref.read(clienteRepositoryProvider).getClientes();
 });
+
+final cantidadClientesProvider = FutureProvider<int>((ref) async {
+  return ref.read(clienteRepositoryProvider).contarClientes();
+});
